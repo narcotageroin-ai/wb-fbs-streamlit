@@ -7,10 +7,8 @@ class WBApiError(Exception):
 WB_API_TOKEN = os.getenv("WB_API_TOKEN", "").strip()
 WB_ENV = os.getenv("WB_ENV", "prod").lower().strip()
 
-if WB_ENV == "sandbox":
-    BASE_URL = "https://suppliers-api-sandbox.wildberries.ru"
-else:
-    BASE_URL = "https://suppliers-api.wildberries.ru"
+# Используем боевой URL всегда (sandbox токен интерпретируется сервером)
+BASE_URL = "https://suppliers-api.wildberries.ru"
 
 
 def set_token(token: str | None):

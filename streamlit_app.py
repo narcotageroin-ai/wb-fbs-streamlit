@@ -2,7 +2,7 @@ import streamlit as st
 import os
 import wb_api
 
-st.title("WB FBS Sandbox Tester")
+st.title("WB FBS Tester (sandbox via prod URL)")
 
 with st.sidebar:
     token_default = st.secrets.get("WB_API_TOKEN", os.getenv("WB_API_TOKEN", ""))
