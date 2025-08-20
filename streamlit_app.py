@@ -13,12 +13,24 @@ st.title("Wildberries FBS — тестовое приложение (oShip-по�
 
 with st.sidebar:
     st.header("Настройки")
-    token = st.text_input("WB API Token", value=os.getenv("WB_API_TOKEN", ""), type="password", key="sidebar_token", help="Токен категории Marketplace")
-    env = st.selectbox("Среда", ["prod", "sandbox"], index=0 if os.getenv("WB_ENV","prod")=="prod" else 1, key="sidebar_env",
+    # Берём токен из Secrets, затем из ENV, затем из поля ввода
+    token_default = st.secrets.get("WB_API_TOKEN", os.getenv("WB_API_TOKEN", ""))
+    token = st.text_input("WB API Token", value=token_default, type="password", key="sidebar_token", help="Токен категории Marketplace")
+    env_default = st.secrets.get("WB_ENV", os.getenv("WB_ENV", "prod"))
+    env = st.selectbox("Среда", ["prod", "sandbox"], index=0 if str(env_default).lower()=="prod" else 1, key="sidebar_env",
                        help="Sandbox доступен при токене с Test Scope")
-    st.caption("Подсказка: переменные можно положить в файл .env")
+    st.caption("Подсказка: переменные можно положить в файл .env или Secrets (Streamlit Cloud)")
+    # Применяем токен рантаймом
     if token:
         os.environ["WB_API_TOKEN"] = token
+        wb_api.set_token(token)
+    else:
+        # Если поле пустое, но есть в secrets/env — применим
+        if token_default:
+            os.environ["WB_API_TOKEN"] = token_default
+            wb_api.set_token(token_default)
+    # Применяем среду
+    os.environ["WB_ENV"] = str(env)
 
 tab_pipeline, tab_orders, tab_supply, tab_labels, tab_meta, tab_pass = st.tabs(["Конвейер (сканер)", "Сборочные задания", "Поставка", "Стикеры", "Маркировка/метаданные", "Пропуска"])
 
@@ -165,7 +177,7 @@ with tab_supply:
     st.markdown("#### Короба (для ПВЗ)")
     cols = st.columns(4)
     with cols[0]:
-        amount = st.number_input("Добавить коровов", min_value=1, value=1, key="supply_trbx_amount")
+        amount = st.number_input("Добавить коробов", min_value=1, value=1, key="supply_trbx_amount")
         if st.button("Добавить короба", key="supply_trbx_add"):
             try:
                 st.json(wb_api.add_boxes(supply_id, amount))
